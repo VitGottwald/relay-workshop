@@ -1,5 +1,5 @@
-import React from 'react';
-import { graphql, useFragment } from 'react-relay/hooks';
+import React, { useTransition } from 'react';
+import { graphql, useRefetchableFragment } from 'react-relay/hooks';
 import { Flex, Text } from 'rebass';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -9,25 +9,19 @@ import { theme } from '@workshop/ui';
 import UserAvatar from './UserAvatar';
 
 import { PostComments_post$key } from './__generated__/PostComments_post.graphql';
+import { PostCommentsRefetchQuery } from './__generated__/PostCommentsRefetchQuery.graphql';
 
 type Props = {
   post: PostComments_post$key;
 };
 const PostComments = (props: Props) => {
-  /**
-   * TODO
-   * use useTransition hook to "suspend" if refetch took too long
-   */
-  const isPending = false;
+  const [startTransition, isPending] = useTransition({ timeoutMs: 3000 });
 
-  /**
-   * TODO
-   * use useRefetchableFragment to be able to fetch newer/older comments of this post
-   */
-  const post = useFragment<PostComments_post$key>(
+  const [post, refetch] = useRefetchableFragment<PostCommentsRefetchQuery, _>(
     graphql`
       fragment PostComments_post on Post
-        @argumentDefinitions(first: { type: Int, defaultValue: 3 }, after: { type: String }) {
+        @argumentDefinitions(first: { type: Int, defaultValue: 3 }, after: { type: String })
+        @refetchable(queryName: "PostCommentsRefetchQuery") {
         id
         comments(first: $first, after: $after) @connection(key: "PostComments_comments", filters: []) {
           endCursorOffset
@@ -64,11 +58,17 @@ const PostComments = (props: Props) => {
     return null;
   }
 
-  /**
-   * TODO
-   * complete loadMore to use startTransition and refetch to fetch more comments
-   */
-  const loadMore = () => {};
+  const loadMore = () => {
+    startTransition(() => {
+      const variables = {
+        id: post.id,
+        first: 5,
+        after: pageInfo.endCursor,
+      };
+
+      refetch(variables, { fetchPolicy: 'store-or-network' });
+    });
+  };
 
   const isDisabled = !pageInfo.hasNextPage;
 
