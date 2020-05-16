@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import Providers from './Providers';
 import App from './App';
+import ErrorBoundary from './ErrorBoundary';
 
 const Root = () => {
   /**
@@ -12,7 +13,11 @@ const Root = () => {
 
   return (
     <Providers>
-      <App />
+      <ErrorBoundary>
+        <Suspense fallback='loading'>
+          <App />
+        </Suspense>
+      </ErrorBoundary>
     </Providers>
   );
 };
