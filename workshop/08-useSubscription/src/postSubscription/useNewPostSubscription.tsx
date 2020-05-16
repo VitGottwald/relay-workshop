@@ -38,10 +38,36 @@ export const useNewPostSubscription = (me: Me) => {
       },
       // eslint-disable-next-line
       onNext: ({ PostNew }: PostNewSubscriptionResponse) => {
-        /**
-         * TODO
-         * show a snackbar info message with new post data
-         */
+        const { post } = PostNew;
+        const { author } = post;
+
+        // new post, check if from another user
+        if (author.id !== me.id) {
+          const action = (key: string) => (
+            <>
+              <Button
+                color='primary'
+                onClick={() => {
+                  closeSnackbar(key);
+                }}
+              >
+                See
+              </Button>
+              <Button
+                onClick={() => {
+                  closeSnackbar(key);
+                }}
+              >
+                Dismiss
+              </Button>
+            </>
+          );
+
+          enqueueSnackbar(`New Post from ${author.name}`, {
+            variant: 'success',
+            action,
+          });
+        }
       },
       updater,
     }),
