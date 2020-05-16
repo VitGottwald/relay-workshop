@@ -12,9 +12,10 @@ const App = () => {
   const query = useLazyLoadQuery<AppQuery>(
     graphql`
       query AppQuery {
-        ...Feed_query
+        ...Feed_query @arguments(first: 3)
       }
     `,
+    {},
   );
 
   return (
